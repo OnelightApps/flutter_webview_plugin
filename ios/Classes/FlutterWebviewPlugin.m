@@ -142,6 +142,13 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
     self.webview.hidden = [hidden boolValue];
     self.webview.scrollView.showsHorizontalScrollIndicator = [scrollBar boolValue];
     self.webview.scrollView.showsVerticalScrollIndicator = [scrollBar boolValue];
+
+    /// Copy over all the cookies from Shared Storage
+    if (@available(iOS 11.0, *)) {
+        for(NSHTTPCookie *c in [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies]) {
+            [self.webview.configuration.websiteDataStore.httpCookieStore setCookie:c completionHandler:nil];
+        }
+    }
     
     [self.webview addObserver:self forKeyPath:@"estimatedProgress" options:NSKeyValueObservingOptionNew context:NULL];
 
@@ -210,7 +217,8 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
                     @throw @"not available on version earlier than ios 9.0";
                 }
             } else {
-                NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]];
+                NSURL *urlForRequest = [NSURL URLWithString:url];
+                NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:urlForRequest];
                 NSDictionary *headers = call.arguments[@"headers"];
 
                 if (headers != nil) {
